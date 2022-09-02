@@ -16,6 +16,8 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v2
       - name: Build
+        run: make build
+      - name: Build Docker
         run: make docker-build
       - name: Login to Docker Hub
         env:
