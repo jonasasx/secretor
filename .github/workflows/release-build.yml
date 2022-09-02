@@ -32,15 +32,14 @@ jobs:
         env:
           VERSION: ${{ steps.get_version.outputs.VERSION }}
       - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }} # This token is provided by Actions, you do not need to create your own token
+        uses: softprops/action-gh-release@v1
         with:
           tag_name: ${{ steps.get_version.outputs.VERSION }}
-          release_name: Release ${{ steps.get_version.outputs.VERSION }}
-          body: |
-            Changes in this Release
+          name: Release ${{ steps.get_version.outputs.VERSION }}
+          generate_release_notes: true
           draft: false
+          token: ${{ secrets.GITHUB_TOKEN }}
           prerelease: false
-          artifacts: bin/secretor
+          files: |
+            bin/secretor
+            README.md
