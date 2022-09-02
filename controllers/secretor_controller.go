@@ -18,6 +18,8 @@ package controllers
 
 import (
 	"context"
+	"fmt"
+	"k8s.io/apimachinery/pkg/api/errors"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -26,6 +28,8 @@ import (
 
 	iojonasasxv1alpha1 "io.jonasasx/secretor/api/v1alpha1"
 )
+
+var logger = ctrl.Log.WithName("SecretorReconciler")
 
 // SecretorReconciler reconciles a Secretor object
 type SecretorReconciler struct {
@@ -47,9 +51,21 @@ type SecretorReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.12.2/pkg/reconcile
 func (r *SecretorReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
+	reqLogger := log.FromContext(ctx)
 
-	// TODO(user): your logic here
+	// Fetch the ScaledObject instance
+	secretor := &iojonasasxv1alpha1.Secretor{}
+	err := r.Client.Get(ctx, req.NamespacedName, secretor)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			return ctrl.Result{}, nil
+		}
+		reqLogger.Error(err, "Failed to get Secretor")
+		return ctrl.Result{}, err
+	}
+
+	reqLogger.Info("Reconciling Secretor")
+	reqLogger.Info(fmt.Sprintf("Reconciling: %v", secretor))
 
 	return ctrl.Result{}, nil
 }
