@@ -1,0 +1,16 @@
+secrets:
+  - type: constant
+    value: pmvp-backend
+    injectTo:
+      secretRef:
+        name: filestorage-ds
+        namespace: dev1
+        field: username
+  - type: generated
+    generation:
+      length: 16
+    injectTo:
+      secretRef:
+        name: filestorage-ds
+        namespace: dev1
+        field: password

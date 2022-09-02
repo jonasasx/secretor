@@ -1,0 +1,16 @@
+domain: io.jonasasx
+layout:
+- go.kubebuilder.io/v4-alpha
+projectName: t
+repo: io.jonasasx/secretor
+resources:
+- api:
+    crdVersion: v1
+    namespaced: true
+  controller: true
+  domain: io.jonasasx
+  group: io.jonasasx
+  kind: Secretor
+  path: io.jonasasx/secretor/api/v1alpha1
+  version: v1alpha1
+version: "3"
