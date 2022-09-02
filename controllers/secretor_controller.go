@@ -18,6 +18,11 @@ package controllers
 
 import (
 	"context"
+	"fmt"
+	"k8s.io/apimachinery/pkg/api/errors"
+	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
+	"k8s.io/apimachinery/pkg/types"
+	"k8s.io/client-go/tools/record"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
@@ -25,12 +30,14 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
 	jonasasxiov1alpha1 "jonasasx.io/secretor/api/v1alpha1"
+	v1 "k8s.io/api/core/v1"
 )
 
 // SecretorReconciler reconciles a Secretor object
 type SecretorReconciler struct {
 	client.Client
-	Scheme *runtime.Scheme
+	Scheme   *runtime.Scheme
+	Recorder record.EventRecorder
 }
 
 //+kubebuilder:rbac:groups=jonasasx.io,resources=secretors,verbs=get;list;watch;create;update;patch;delete
@@ -47,9 +54,82 @@ type SecretorReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.12.2/pkg/reconcile
 func (r *SecretorReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	_ = log.FromContext(ctx)
+	reqLogger := log.FromContext(ctx)
 
-	// TODO(user): your logic here
+	// Fetch the ScaledObject instance
+	secretor := &jonasasxiov1alpha1.Secretor{}
+	err := r.Client.Get(ctx, req.NamespacedName, secretor)
+	if err != nil {
+		if errors.IsNotFound(err) {
+			return ctrl.Result{}, nil
+		}
+		reqLogger.Error(err, "Failed to get Secretor")
+		return ctrl.Result{}, err
+	}
+
+	reqLogger.Info("Reconciling Secretor")
+	reqLogger.V(10).Info(fmt.Sprintf("Reconciling: %v", secretor))
+
+	value := *secretor.Spec.Value
+
+	for _, injectTo := range secretor.Spec.InjectTo {
+		secretRef := injectTo.SecretRef
+
+		exist := true
+		secret := &v1.Secret{}
+		namespace := *secretRef.Namespace
+		err = r.Client.Get(ctx, types.NamespacedName{Namespace: namespace, Name: secretRef.Name}, secret)
+		if err != nil {
+			if !errors.IsNotFound(err) {
+				reqLogger.Error(err, fmt.Sprintf("Failed to get Secret %s/%s", namespace, secret.Name))
+				return ctrl.Result{}, err
+
+			}
+			exist = false
+		}
+		if exist {
+			origin := secret.DeepCopy()
+			if secret.StringData == nil {
+				secret.StringData = map[string]string{}
+			}
+			secret.StringData[secretRef.Field] = value
+			err = r.Client.Patch(ctx, secret, client.MergeFrom(origin))
+			if err != nil {
+				reqLogger.Error(err, fmt.Sprintf("Failed to patch Secret %s/%s", namespace, secretRef.Name))
+				return ctrl.Result{}, err
+			}
+		} else {
+			labels := map[string]string{}
+			for k, v := range secretor.Labels {
+				labels[k] = v
+			}
+			secret.TypeMeta = metav1.TypeMeta{
+				APIVersion: "v1",
+			}
+			secret.ObjectMeta = metav1.ObjectMeta{
+				Name:      secretRef.Name,
+				Namespace: namespace,
+				Labels:    labels,
+			}
+			secret.OwnerReferences = []metav1.OwnerReference{
+				{
+					Name:       secretor.Name,
+					APIVersion: secretor.APIVersion,
+					Kind:       secretor.Kind,
+					UID:        secretor.UID,
+				},
+			}
+			secret.StringData = map[string]string{
+				secretRef.Field: value,
+			}
+			err = r.Client.Create(ctx, secret)
+			if err != nil {
+				reqLogger.Error(err, fmt.Sprintf("Failed to create Secret %s/%s", namespace, secretRef.Name))
+				return ctrl.Result{}, err
+			}
+		}
+		r.Recorder.Event(secretor, v1.EventTypeNormal, "SecretorSynchronized", "Secretor is synchronized")
+	}
 
 	return ctrl.Result{}, nil
 }

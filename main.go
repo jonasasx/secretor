@@ -89,9 +89,12 @@ func main() {
 		os.Exit(1)
 	}
 
+	eventRecorder := mgr.GetEventRecorderFor("secretor")
+
 	if err = (&controllers.SecretorReconciler{
-		Client: mgr.GetClient(),
-		Scheme: mgr.GetScheme(),
+		Client:   mgr.GetClient(),
+		Scheme:   mgr.GetScheme(),
+		Recorder: eventRecorder,
 	}).SetupWithManager(mgr); err != nil {
 		setupLog.Error(err, "unable to create controller", "controller", "Secretor")
 		os.Exit(1)

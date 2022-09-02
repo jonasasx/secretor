@@ -33,7 +33,7 @@ type SecretorSpec struct {
 	Type       string      `json:"type,omitempty"`
 	Value      *string     `json:"value,omitempty"`
 	Generating *Generating `json:"generating,omitempty"`
-	InjectTo   InjectTo    `json:"injectTo,omitempty"`
+	InjectTo   []InjectTo  `json:"injectTo,omitempty"`
 }
 
 type InjectTo struct {
