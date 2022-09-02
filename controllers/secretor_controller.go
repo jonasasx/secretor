@@ -18,18 +18,14 @@ package controllers
 
 import (
 	"context"
-	"fmt"
-	"k8s.io/apimachinery/pkg/api/errors"
 
 	"k8s.io/apimachinery/pkg/runtime"
 	ctrl "sigs.k8s.io/controller-runtime"
 	"sigs.k8s.io/controller-runtime/pkg/client"
 	"sigs.k8s.io/controller-runtime/pkg/log"
 
-	iojonasasxv1alpha1 "io.jonasasx/secretor/api/v1alpha1"
+	jonasasxiov1alpha1 "jonasasx.io/secretor/api/v1alpha1"
 )
-
-var logger = ctrl.Log.WithName("SecretorReconciler")
 
 // SecretorReconciler reconciles a Secretor object
 type SecretorReconciler struct {
@@ -37,9 +33,9 @@ type SecretorReconciler struct {
 	Scheme *runtime.Scheme
 }
 
-//+kubebuilder:rbac:groups=io.jonasasx,resources=secretors,verbs=get;list;watch;create;update;patch;delete
-//+kubebuilder:rbac:groups=io.jonasasx,resources=secretors/status,verbs=get;update;patch
-//+kubebuilder:rbac:groups=io.jonasasx,resources=secretors/finalizers,verbs=update
+//+kubebuilder:rbac:groups=jonasasx.io,resources=secretors,verbs=get;list;watch;create;update;patch;delete
+//+kubebuilder:rbac:groups=jonasasx.io,resources=secretors/status,verbs=get;update;patch
+//+kubebuilder:rbac:groups=jonasasx.io,resources=secretors/finalizers,verbs=update
 
 // Reconcile is part of the main kubernetes reconciliation loop which aims to
 // move the current state of the cluster closer to the desired state.
@@ -51,21 +47,9 @@ type SecretorReconciler struct {
 // For more details, check Reconcile and its Result here:
 // - https://pkg.go.dev/sigs.k8s.io/controller-runtime@v0.12.2/pkg/reconcile
 func (r *SecretorReconciler) Reconcile(ctx context.Context, req ctrl.Request) (ctrl.Result, error) {
-	reqLogger := log.FromContext(ctx)
+	_ = log.FromContext(ctx)
 
-	// Fetch the ScaledObject instance
-	secretor := &iojonasasxv1alpha1.Secretor{}
-	err := r.Client.Get(ctx, req.NamespacedName, secretor)
-	if err != nil {
-		if errors.IsNotFound(err) {
-			return ctrl.Result{}, nil
-		}
-		reqLogger.Error(err, "Failed to get Secretor")
-		return ctrl.Result{}, err
-	}
-
-	reqLogger.Info("Reconciling Secretor")
-	reqLogger.Info(fmt.Sprintf("Reconciling: %v", secretor))
+	// TODO(user): your logic here
 
 	return ctrl.Result{}, nil
 }
@@ -73,6 +57,6 @@ func (r *SecretorReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 // SetupWithManager sets up the controller with the Manager.
 func (r *SecretorReconciler) SetupWithManager(mgr ctrl.Manager) error {
 	return ctrl.NewControllerManagedBy(mgr).
-		For(&iojonasasxv1alpha1.Secretor{}).
+		For(&jonasasxiov1alpha1.Secretor{}).
 		Complete(r)
 }

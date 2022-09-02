@@ -31,8 +31,8 @@ import (
 	"sigs.k8s.io/controller-runtime/pkg/healthz"
 	"sigs.k8s.io/controller-runtime/pkg/log/zap"
 
-	iojonasasxv1alpha1 "io.jonasasx/secretor/api/v1alpha1"
-	"io.jonasasx/secretor/controllers"
+	jonasasxiov1alpha1 "jonasasx.io/secretor/api/v1alpha1"
+	"jonasasx.io/secretor/controllers"
 	//+kubebuilder:scaffold:imports
 )
 
@@ -44,7 +44,7 @@ var (
 func init() {
 	utilruntime.Must(clientgoscheme.AddToScheme(scheme))
 
-	utilruntime.Must(iojonasasxv1alpha1.AddToScheme(scheme))
+	utilruntime.Must(jonasasxiov1alpha1.AddToScheme(scheme))
 	//+kubebuilder:scaffold:scheme
 }
 
@@ -71,7 +71,7 @@ func main() {
 		Port:                   9443,
 		HealthProbeBindAddress: probeAddr,
 		LeaderElection:         enableLeaderElection,
-		LeaderElectionID:       "e2950ec8.io.jonasasx",
+		LeaderElectionID:       "71f0fda6.jonasasx.io",
 		// LeaderElectionReleaseOnCancel defines if the leader should step down voluntarily
 		// when the Manager ends. This requires the binary to immediately end when the
 		// Manager is stopped, otherwise, this setting is unsafe. Setting this significantly

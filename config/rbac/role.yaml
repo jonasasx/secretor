@@ -6,7 +6,7 @@ metadata:
   name: manager-role
 rules:
 - apiGroups:
-  - io.jonasasx
+  - jonasasx.io
   resources:
   - secretors
   verbs:
@@ -18,13 +18,13 @@ rules:
   - update
   - watch
 - apiGroups:
-  - io.jonasasx
+  - jonasasx.io
   resources:
   - secretors/finalizers
   verbs:
   - update
 - apiGroups:
-  - io.jonasasx
+  - jonasasx.io
   resources:
   - secretors/status
   verbs:

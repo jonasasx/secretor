@@ -1,4 +1,4 @@
-module io.jonasasx/secretor
+module jonasasx.io/secretor
 
 go 1.18
 
