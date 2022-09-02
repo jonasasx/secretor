@@ -15,6 +15,10 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v2
+      - name: Build
+        run: make docker-build
+      - name: Publish
+        run: make docker-push
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
