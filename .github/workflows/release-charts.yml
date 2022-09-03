@@ -3,11 +3,11 @@ on:
     branches:
       - 'master'
 
-name: Create Release
+name: Release Helm Charts
 
 jobs:
   build:
-    name: Create Release
+    name: Release Helm Charts
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
