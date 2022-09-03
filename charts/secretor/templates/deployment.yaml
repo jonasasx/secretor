@@ -5,9 +5,8 @@ metadata:
   labels:
     {{- include "secretor.labels" . | nindent 4 }}
 spec:
-  {{- if not .Values.autoscaling.enabled }}
-  replicas: {{ .Values.replicaCount }}
-  {{- end }}
+  revisionHistoryLimit: 0
+  replicas: 1
   selector:
     matchLabels:
       {{- include "secretor.selectorLabels" . | nindent 6 }}
