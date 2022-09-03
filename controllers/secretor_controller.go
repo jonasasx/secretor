@@ -17,8 +17,10 @@ limitations under the License.
 package controllers
 
 import (
+	"bytes"
 	"context"
 	"fmt"
+	"github.com/thanhpk/randstr"
 	"k8s.io/apimachinery/pkg/api/errors"
 	metav1 "k8s.io/apimachinery/pkg/apis/meta/v1"
 	"k8s.io/apimachinery/pkg/types"
@@ -70,33 +72,76 @@ func (r *SecretorReconciler) Reconcile(ctx context.Context, req ctrl.Request) (c
 	reqLogger.Info("Reconciling Secretor")
 	reqLogger.V(10).Info(fmt.Sprintf("Reconciling: %v", secretor))
 
-	value := *secretor.Spec.Value
+	value := ""
+
+	if secretor.Spec.Type == "generate" {
+		if secretor.Spec.Generating == nil {
+			err = fmt.Errorf("spec.generating is undefined")
+			reqLogger.Error(err, err.Error())
+			return ctrl.Result{}, err
+		}
+		for _, injectTo := range secretor.Spec.InjectTo {
+			secretRef := injectTo.SecretRef
+
+			secret := &v1.Secret{}
+			namespace := ""
+			if secretRef.Namespace == nil {
+				namespace = secretor.Namespace
+			} else {
+				namespace = *secretRef.Namespace
+			}
+			err = r.Client.Get(ctx, types.NamespacedName{Namespace: namespace, Name: secretRef.Name}, secret)
+			if err != nil {
+				continue
+			}
+			if secret.Data != nil {
+				if val, ok := secret.Data[secretRef.Field]; ok {
+					value = string(val)
+					break
+				}
+			}
+		}
+		if value == "" {
+			generating := secretor.Spec.Generating
+			value = randstr.String(generating.Length)
+		}
+	} else if secretor.Spec.Type == "constant" {
+		value = *secretor.Spec.Value
+	} else {
+		err = fmt.Errorf(fmt.Sprintf("Unknown secretor type \"%s\"", secretor.Spec.Type))
+		reqLogger.Error(err, err.Error())
+		return ctrl.Result{}, err
+	}
 
 	for _, injectTo := range secretor.Spec.InjectTo {
 		secretRef := injectTo.SecretRef
 
 		exist := true
 		secret := &v1.Secret{}
-		namespace := *secretRef.Namespace
+		namespace := ""
+		if secretRef.Namespace == nil {
+			namespace = secretor.Namespace
+		} else {
+			namespace = *secretRef.Namespace
+		}
 		err = r.Client.Get(ctx, types.NamespacedName{Namespace: namespace, Name: secretRef.Name}, secret)
 		if err != nil {
 			if !errors.IsNotFound(err) {
 				reqLogger.Error(err, fmt.Sprintf("Failed to get Secret %s/%s", namespace, secret.Name))
 				return ctrl.Result{}, err
-
 			}
 			exist = false
 		}
 		if exist {
 			origin := secret.DeepCopy()
-			if secret.StringData == nil {
-				secret.StringData = map[string]string{}
-			}
-			secret.StringData[secretRef.Field] = value
-			err = r.Client.Patch(ctx, secret, client.MergeFrom(origin))
-			if err != nil {
-				reqLogger.Error(err, fmt.Sprintf("Failed to patch Secret %s/%s", namespace, secretRef.Name))
-				return ctrl.Result{}, err
+			byteValue := []byte(value)
+			if bytes.Compare(byteValue, secret.Data[secretRef.Field]) != 0 {
+				secret.Data[secretRef.Field] = byteValue
+				err = r.Client.Patch(ctx, secret, client.MergeFrom(origin))
+				if err != nil {
+					reqLogger.Error(err, fmt.Sprintf("Failed to patch Secret %s/%s", namespace, secretRef.Name))
+					return ctrl.Result{}, err
+				}
 			}
 		} else {
 			labels := map[string]string{}
