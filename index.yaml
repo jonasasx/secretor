@@ -3,6 +3,16 @@ entries:
   secretor:
   - apiVersion: v2
     appVersion: 0.0.4
+    created: "2022-09-03T10:49:09.705760583Z"
+    description: A Helm chart for Kubernetes
+    digest: 7d7bc86637ae8ea2d498796223ced2145d98bebf55f89f2150b8f32bcce69206
+    name: secretor
+    type: application
+    urls:
+    - https://github.com/jonasasx/secretor/releases/download/secretor-0.1.6/secretor-0.1.6.tgz
+    version: 0.1.6
+  - apiVersion: v2
+    appVersion: 0.0.4
     created: "2022-09-03T10:46:45.729216401Z"
     description: A Helm chart for Kubernetes
     digest: 36c89ad73fc33d7744039cdeee08141bd12593301d11ed84c194d29d575847f4
@@ -21,4 +31,4 @@ entries:
     urls:
     - https://github.com/jonasasx/secretor/releases/download/secretor-0.1.4/secretor-0.1.4.tgz
     version: 0.1.4
-generated: "2022-09-03T10:46:45.729224001Z"
+generated: "2022-09-03T10:49:09.705786183Z"
