@@ -3,6 +3,8 @@ on:
     # Sequence of patterns matched against refs/tags
     tags:
       - 'v*' # Push events to matching v*, i.e. v1.0, v20.15.10
+    branches:
+      - '*'
 
 name: Create Release
 
@@ -15,24 +17,24 @@ jobs:
         uses: actions/checkout@v2
         with:
           fetch-depth: 0
-      - name: Get the version
-        id: get_version
-        run: echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/v}
-      - name: Build
-        run: make build
-      - name: Build Docker
-        run: make docker-build
-        env:
-          VERSION: ${{ steps.get_version.outputs.VERSION }}
-      - name: Login to Docker Hub
-        env:
-          DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
-          DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
-        run: echo $DOCKER_HUB_ACCESS_TOKEN | docker login -u $DOCKER_HUB_USERNAME --password-stdin
-      - name: Publish
-        run: make docker-push
-        env:
-          VERSION: ${{ steps.get_version.outputs.VERSION }}
+#      - name: Get the version
+#        id: get_version
+#        run: echo ::set-output name=VERSION::${GITHUB_REF#refs/tags/v}
+#      - name: Build
+#        run: make build
+#      - name: Build Docker
+#        run: make docker-build
+#        env:
+#          VERSION: ${{ steps.get_version.outputs.VERSION }}
+#      - name: Login to Docker Hub
+#        env:
+#          DOCKER_HUB_ACCESS_TOKEN: ${{ secrets.DOCKER_HUB_ACCESS_TOKEN }}
+#          DOCKER_HUB_USERNAME: ${{ secrets.DOCKER_HUB_USERNAME }}
+#        run: echo $DOCKER_HUB_ACCESS_TOKEN | docker login -u $DOCKER_HUB_USERNAME --password-stdin
+#      - name: Publish
+#        run: make docker-push
+#        env:
+#          VERSION: ${{ steps.get_version.outputs.VERSION }}
       - name: Configure Git
         run: |
           git config user.name "$GITHUB_ACTOR"
@@ -45,15 +47,15 @@ jobs:
         uses: helm/chart-releaser-action@v1.4.0
         env:
           CR_TOKEN: "${{ secrets.GITHUB_TOKEN }}"
-      - name: Create Release
-        uses: softprops/action-gh-release@v1
-        with:
-          tag_name: ${{ steps.get_version.outputs.VERSION }}
-          name: Release ${{ steps.get_version.outputs.VERSION }}
-          generate_release_notes: true
-          draft: false
-          token: ${{ secrets.GITHUB_TOKEN }}
-          prerelease: false
-          files: |
-            bin/secretor
-            README.md
+#      - name: Create Release
+#        uses: softprops/action-gh-release@v1
+#        with:
+#          tag_name: ${{ steps.get_version.outputs.VERSION }}
+#          name: Release ${{ steps.get_version.outputs.VERSION }}
+#          generate_release_notes: true
+#          draft: false
+#          token: ${{ secrets.GITHUB_TOKEN }}
+#          prerelease: false
+#          files: |
+#            bin/secretor
+#            README.md
