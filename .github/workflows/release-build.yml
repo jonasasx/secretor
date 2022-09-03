@@ -21,7 +21,7 @@ jobs:
       - name: Build
         run: make build
       - name: Build Docker
-        run: make docker-build
+        run: ls -l && ls -l bin && make docker-build
         env:
           VERSION: ${{ steps.get_version.outputs.VERSION }}
       - name: Login to Docker Hub
